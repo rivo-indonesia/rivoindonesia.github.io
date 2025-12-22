@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Rivo Social - Security System</title>
+    <title>Rivo Sosial Media</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -18,38 +18,38 @@
         .hidden { display: none !important; }
 
         /* UTILS */
-        .btn { padding: 10px; border-radius: 8px; font-weight: 600; border: none; cursor: pointer; width: 100%; transition: 0.2s; }
+        .btn { padding: 10px; border-radius: 8px; font-weight: 600; border: none; cursor: pointer; width: 100%; transition: 0.2s; font-size: 0.95rem; }
         .btn-primary { background: var(--text-main); color: white; }
         .btn-danger { background: #fee2e2; color: #ef4444; }
+        
+        /* TOMBOL GOOGLE (BARU) */
+        .btn-google {
+            background: white; color: #333; border: 1px solid #ddd;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            margin-bottom: 15px; position: relative;
+        }
+        .btn-google:hover { background: #f1f1f1; }
+        .google-icon { width: 18px; height: 18px; }
+
         .modern-input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 20px; background: #f0f2f5; outline: none; margin-bottom: 10px; }
         .clickable { cursor: pointer; } .clickable:hover { opacity: 0.8; }
 
         /* AUTH */
         #authView { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-card); z-index: 5000; padding: 40px 25px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         #authForm { width: 100%; max-width: 400px; }
+        .divider { display: flex; align-items: center; margin: 20px 0; color: #999; font-size: 0.8rem; width: 100%; }
+        .divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: #ddd; }
+        .divider::before { margin-right: 10px; } .divider::after { margin-left: 10px; }
 
-        /* LAYOUT & HEADERS */
+        /* LAYOUT */
         .main-layout { padding-bottom: 80px; max-width: 100%; margin: 0 auto; }
-        
-        /* DESKTOP ELEMENT (Hidden on Mobile) */
         .desktop-header, .desktop-sidebar { display: none; }
-
-        /* MOBILE TOP HEADER (NEW) */
-        .mobile-top-bar {
-            position: fixed; top: 0; left: 0; width: 100%; height: 60px;
-            background: white; border-bottom: 1px solid #ddd;
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0 15px; z-index: 2000;
-        }
-        .mobile-logo-img { height: 35px; width: auto; object-fit: contain; } /* Logo Gambar */
-        .mobile-header-spacer { height: 60px; } /* Spacer agar konten tidak ketutup */
-
-        /* MOBILE BOTTOM NAV */
+        .mobile-only-header { display: block; }
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 60px; background: rgba(255,255,255,0.95); border-top: 1px solid #ddd; display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
         .nav-item { font-size: 1.5rem; color: #bbb; cursor: pointer; }
         .nav-item.active { color: var(--accent); }
 
-        /* BAN OVERLAY (POP UP PERMANEN) */
+        /* BAN OVERLAY */
         #banOverlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.95); z-index: 9999;
@@ -57,8 +57,6 @@
             color: white; text-align: center; padding: 30px;
         }
         #banOverlay i { font-size: 4rem; color: #ff4757; margin-bottom: 20px; }
-        #banOverlay h2 { margin-bottom: 10px; color: #ff6b81; }
-        #banOverlay p { color: #ccc; margin-bottom: 30px; line-height: 1.5; }
 
         /* FEED CARD */
         .feed-card { background: var(--bg-card); margin-bottom: 15px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); border-radius: var(--radius); overflow: hidden; position: relative; }
@@ -104,11 +102,11 @@
         .slide-page.open { transform: translateY(0); }
         .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-weight: bold; font-size: 1.1rem; }
 
-        /* DESKTOP (Min 768px) */
+        /* DESKTOP */
         @media (min-width: 768px) {
             body { background-color: #F0F2F5; }
             .bottom-nav { display: none !important; }
-            .mobile-top-bar { display: none !important; } /* Sembunyikan Header Mobile di PC */
+            .mobile-top-bar { display: none !important; } 
             .mobile-header-spacer { display: none !important; }
             
             .main-layout { padding-bottom: 0; padding-top: var(--header-h); display: flex; justify-content: center; }
@@ -135,7 +133,7 @@
     <div id="banOverlay" class="hidden">
         <i class="fas fa-ban"></i>
         <h2>AKUN DIBEKUKAN</h2>
-        <p>Akun Anda telah dinonaktifkan secara permanen karena melanggar pedoman komunitas (Komentar Kasar) lebih dari 2 kali.</p>
+        <p>Akun Anda dinonaktifkan karena melanggar pedoman komunitas.</p>
         <button class="btn btn-danger" onclick="handleLogout()" style="width: auto; padding: 10px 30px;">Keluar</button>
     </div>
 
@@ -161,7 +159,15 @@
     <div id="authView">
         <h1 style="margin-bottom:10px; font-size:2.5rem; color:var(--text-main);">Rivo.</h1>
         <p style="color:#666; margin-bottom:30px;">Social Connect</p>
+        
         <form id="authForm">
+            <button type="button" class="btn btn-google" onclick="handleGoogleLogin()">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="google-icon">
+                Masuk dengan Google
+            </button>
+            
+            <div class="divider">ATAU EMAIL</div>
+
             <div id="registerFields" class="hidden"><input type="text" id="regName" class="modern-input" placeholder="Nama Lengkap"><input type="text" id="regUsername" class="modern-input" placeholder="Username"></div>
             <input type="email" id="email" class="modern-input" placeholder="Email" required><input type="password" id="password" class="modern-input" placeholder="Password" required>
             <button type="submit" class="btn btn-primary" id="authBtn">Masuk</button>
@@ -170,7 +176,9 @@
     </div>
 
     <div id="appView" class="hidden main-layout">
-        <div class="mobile-header-spacer"></div> <div id="homeTab"><div id="feedContainer" style="padding:0 10px;"></div><div style="height:20px;"></div></div>
+        <div class="mobile-header-spacer"></div> 
+        
+        <div id="homeTab"><div id="feedContainer" style="padding:0 10px;"></div><div style="height:20px;"></div></div>
         <div id="popularTab" class="hidden"><div style="padding:15px; font-weight:800; font-size:1.5rem;">Populer 🔥</div><div id="popularFeedContainer" style="padding:0 10px;"><p style="text-align:center; color:#999; margin-top:20px;">Memuat...</p></div><div style="height:20px;"></div></div>
         <div id="searchTab" class="hidden"><div style="padding:15px; font-weight:800; font-size:1.5rem;">Pencarian</div><div style="padding: 0 15px;"><input type="text" id="searchInput" class="modern-input" placeholder="Cari teman atau postingan..." oninput="handleSearch(this.value)"><div id="searchResults"><p style="text-align:center; color:#999; margin-top:20px;">Mulai ketik...</p></div></div></div>
         <div id="profileTab" class="hidden">
@@ -220,7 +228,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, collection, addDoc, query, orderBy, onSnapshot, updateDoc, deleteDoc, arrayUnion, arrayRemove, where, getDocs } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
         // CONFIG (Ganti dengan Config Rivo Anda)
@@ -237,6 +245,7 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const googleProvider = new GoogleAuthProvider(); // NEW PROVIDER
 
         let currentUser = null;
         let isRegister = false;
@@ -245,8 +254,7 @@
         let currentUserData = {}; 
         let visitedUserUid = null;
 
-        // --- SISTEM BANNED & BAD WORDS ---
-        const BAD_WORDS = ['kasar', 'bodoh', 'anjing', 'tolol', 'babi', 'mati']; // Tambahkan kata kasar di sini
+        const BAD_WORDS = ['kasar', 'bodoh', 'anjing', 'tolol', 'babi', 'mati'];
 
         function checkBadWords(text) {
             const lowerText = text.toLowerCase();
@@ -256,26 +264,21 @@
         async function handleViolation(userUid) {
             const userRef = doc(db, "users", userUid);
             const userSnap = await getDoc(userRef);
-            
             if(userSnap.exists()) {
                 const data = userSnap.data();
                 const currentViolations = data.violationCount || 0;
                 const newCount = currentViolations + 1;
-
                 if (newCount >= 2) {
-                    // BANNED PERMANEN
                     await updateDoc(userRef, { violationCount: newCount, isBanned: true });
                     alert("Akun Anda diblokir permanen karena melanggar aturan komunitas!");
-                    document.getElementById('banOverlay').classList.remove('hidden'); // Tampilkan layar merah
+                    document.getElementById('banOverlay').classList.remove('hidden');
                 } else {
-                    // PERINGATAN
                     await updateDoc(userRef, { violationCount: newCount });
-                    alert(`PERINGATAN! Komentar kasar terdeteksi. Pelanggaran: ${newCount}/2. Jika mencapai 2, akun akan dibanned permanen.`);
+                    alert(`PERINGATAN! Komentar kasar terdeteksi. Pelanggaran: ${newCount}/2.`);
                 }
             }
         }
 
-        // --- COMPRESSOR ---
         function compressImage(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -299,24 +302,48 @@
         onAuthStateChanged(auth, async (user) => {
             if(user) {
                 currentUser = user;
-                
-                // CEK STATUS BANNED SAAT LOGIN
                 const userRef = doc(db, "users", user.uid);
                 const snap = await getDoc(userRef);
                 if(snap.exists() && snap.data().isBanned === true) {
-                    document.getElementById('banOverlay').classList.remove('hidden');
-                    return; // Stop loading app
+                    document.getElementById('banOverlay').classList.remove('hidden'); return;
                 }
-
                 document.getElementById('authView').classList.add('hidden');
                 document.getElementById('appView').classList.remove('hidden');
                 loadUserData(); loadFeed(); loadMyPosts();
             } else {
                 document.getElementById('appView').classList.add('hidden');
                 document.getElementById('authView').classList.remove('hidden');
-                document.getElementById('banOverlay').classList.add('hidden'); // Sembunyikan jika logout
+                document.getElementById('banOverlay').classList.add('hidden');
             }
         });
+
+        // --- GOOGLE LOGIN ---
+        window.handleGoogleLogin = async () => {
+            try {
+                const result = await signInWithPopup(auth, googleProvider);
+                const user = result.user;
+                
+                // Cek apakah user sudah ada di database, kalau belum buat baru
+                const userRef = doc(db, "users", user.uid);
+                const userSnap = await getDoc(userRef);
+                
+                if (!userSnap.exists()) {
+                    await setDoc(userRef, { 
+                        uid: user.uid, 
+                        name: user.displayName, 
+                        email: user.email,
+                        username: user.email.split('@')[0],
+                        photoURL: user.photoURL, 
+                        bio: "Hai, saya menggunakan Rivo!",
+                        followers: [], following: [], violationCount: 0, isBanned: false
+                    });
+                }
+                // onAuthStateChanged akan menangani sisanya
+            } catch (error) {
+                alert("Gagal Login Google: " + error.message);
+                console.error(error);
+            }
+        };
 
         window.toggleAuthMode = () => {
             isRegister = !isRegister;
@@ -335,7 +362,6 @@
                     const username = document.getElementById('regUsername').value;
                     const res = await createUserWithEmailAndPassword(auth, email, pass);
                     const pic = `https://ui-avatars.com/api/?name=${name}&background=random`;
-                    // Setup User Data Baru (termasuk counter violation)
                     await setDoc(doc(db, "users", res.user.uid), { 
                         uid: res.user.uid, name, username, email, bio: "Hai!", photoURL: pic, 
                         followers: [], following: [], violationCount: 0, isBanned: false
@@ -353,12 +379,7 @@
             onSnapshot(doc(db, "users", currentUser.uid), (docSnap) => {
                 if(docSnap.exists()) {
                     currentUserData = docSnap.data();
-                    
-                    // Real-time Ban Check
-                    if (currentUserData.isBanned) {
-                        document.getElementById('banOverlay').classList.remove('hidden');
-                    }
-
+                    if (currentUserData.isBanned) document.getElementById('banOverlay').classList.remove('hidden');
                     document.getElementById('displayName').innerText = currentUserData.name;
                     document.getElementById('displayUsername').innerText = "@" + currentUserData.username;
                     document.getElementById('displayBio').innerText = currentUserData.bio;
@@ -368,10 +389,8 @@
                     document.getElementById('editBio').value = currentUserData.bio;
                     document.getElementById('editPreviewImg').src = currentUserData.photoURL;
                     document.getElementById('headerProfileImg').src = currentUserData.photoURL;
-                    const followers = currentUserData.followers ? currentUserData.followers.length : 0;
-                    const following = currentUserData.following ? currentUserData.following.length : 0;
-                    document.getElementById('statFollowers').innerText = followers;
-                    document.getElementById('statFollowing').innerText = following;
+                    document.getElementById('statFollowers').innerText = currentUserData.followers ? currentUserData.followers.length : 0;
+                    document.getElementById('statFollowing').innerText = currentUserData.following ? currentUserData.following.length : 0;
                 }
             });
             const q = query(collection(db, "posts"), where("userId", "==", currentUser.uid));
@@ -395,7 +414,6 @@
             } catch(err) { alert(err.message); } finally { btn.innerText = "Simpan"; }
         };
 
-        // --- VISIT PROFILE ---
         window.visitUser = async (targetUid) => {
             if(targetUid === currentUser.uid) { switchTab('profile'); return; }
             visitedUserUid = targetUid;
@@ -426,7 +444,6 @@
         }
         window.handleOtherFollow = () => { if(visitedUserUid) window.handleFollow(visitedUserUid); }
 
-        // --- SEARCH ---
         window.handleSearch = async (keyword) => {
             const resDiv = document.getElementById('searchResults');
             resDiv.innerHTML = "";
@@ -505,7 +522,6 @@
             } catch(e) { alert("Gagal follow: " + e.message); }
         };
 
-        // --- UPLOAD (IMAGE ONLY) ---
         window.handlePostUpload = async () => {
             const file = document.getElementById('postFileInput').files[0];
             const caption = document.getElementById('postCaption').value;
@@ -569,7 +585,6 @@
         function loadFeed() { renderPostList(query(collection(db, "posts"), orderBy("createdAt", "desc")), "feedContainer"); }
         function loadMyPosts() { renderPostList(query(collection(db, "posts"), where("userId", "==", currentUser.uid)), "myFeedContainer"); }
 
-        // --- COMMENTS (WITH BAN LOGIC) ---
         window.openCommentSheet = (pid) => {
             currentCommentPostId = pid;
             document.getElementById('sheetBackdrop').classList.add('show');
@@ -591,7 +606,6 @@
                 const isMyComment = c.uid === currentUser.uid;
                 const isMyPost = postData.userId === currentUser.uid;
                 if (isMyComment || isMyPost) deleteBtn = `<i class="fas fa-trash comment-delete-btn" onclick="deleteComment('${c.timestamp}')"></i>`;
-                
                 list.innerHTML += `
                     <div class="sheet-comment-item">
                         <img src="${c.userPhoto}" class="sheet-comment-avatar clickable" onclick="visitUser('${c.uid}')">
@@ -605,18 +619,11 @@
             });
             list.scrollTop = list.scrollHeight;
         }
-
         window.sendCommentFromSheet = async () => {
             const input = document.getElementById('sheetCommentInput');
             const text = input.value;
             if(!text || !currentCommentPostId) return;
-
-            // CEK KATA KASAR
-            if (checkBadWords(text)) {
-                await handleViolation(currentUser.uid);
-                return; // Stop komen
-            }
-
+            if (checkBadWords(text)) { await handleViolation(currentUser.uid); return; }
             const u = await getDoc(doc(db, "users", currentUser.uid));
             const newComment = { uid: currentUser.uid, userName: u.data().name, userPhoto: u.data().photoURL, text: text, timestamp: Date.now() };
             await updateDoc(doc(db, "posts", currentCommentPostId), { comments: arrayUnion(newComment) });
@@ -630,7 +637,6 @@
             if(commentToDelete) await updateDoc(doc(db, "posts", currentCommentPostId), { comments: arrayRemove(commentToDelete) });
         };
 
-        // UI HELPERS
         window.toggleLike = async (pid) => { const ref=doc(db,"posts",pid); const snap=await getDoc(ref); const likes=snap.data().likes||[]; if(likes.includes(currentUser.uid)) await updateDoc(ref,{likes:arrayRemove(currentUser.uid)}); else await updateDoc(ref,{likes:arrayUnion(currentUser.uid)}); }
         window.openEditPost = (id,title,img) => { document.getElementById('editPostView').classList.add('open'); document.getElementById('editPostId').value=id; document.getElementById('editPostCaption').value=title; document.getElementById('editPostPreview').src=img; }
         window.closeEditPost = () => document.getElementById('editPostView').classList.remove('open');
