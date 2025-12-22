@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Rivo Sosial Media</title>
+    <title>Rivo Social - Phone Login</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -21,15 +21,21 @@
         .btn { padding: 10px; border-radius: 8px; font-weight: 600; border: none; cursor: pointer; width: 100%; transition: 0.2s; font-size: 0.95rem; }
         .btn-primary { background: var(--text-main); color: white; }
         .btn-danger { background: #fee2e2; color: #ef4444; }
+        .btn-success { background: #25D366; color: white; } /* WA Color */
         
-        /* TOMBOL GOOGLE (BARU) */
         .btn-google {
             background: white; color: #333; border: 1px solid #ddd;
             display: flex; align-items: center; justify-content: center; gap: 10px;
-            margin-bottom: 15px; position: relative;
+            margin-bottom: 10px; position: relative;
         }
         .btn-google:hover { background: #f1f1f1; }
         .google-icon { width: 18px; height: 18px; }
+
+        .btn-phone {
+            background: white; color: #333; border: 1px solid #ddd;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            margin-bottom: 15px;
+        }
 
         .modern-input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 20px; background: #f0f2f5; outline: none; margin-bottom: 10px; }
         .clickable { cursor: pointer; } .clickable:hover { opacity: 0.8; }
@@ -102,6 +108,14 @@
         .slide-page.open { transform: translateY(0); }
         .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-weight: bold; font-size: 1.1rem; }
 
+        /* PHONE MODAL */
+        .phone-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: white; z-index: 6000; display: flex; flex-direction: column; 
+            padding: 30px; transform: translateX(100%); transition: 0.3s;
+        }
+        .phone-modal.show { transform: translateX(0); }
+
         /* DESKTOP */
         @media (min-width: 768px) {
             body { background-color: #F0F2F5; }
@@ -125,6 +139,9 @@
             .desktop-modal-wrapper { display: block !important; background: white; width: 100%; max-width: 500px; padding: 20px; border-radius: 12px; max-height: 90vh; overflow-y: auto; }
             .comment-sheet { bottom: auto; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9); width: 500px; height: 600px; border-radius: 12px; opacity: 0; pointer-events: none; }
             .comment-sheet.open { transform: translate(-50%, -50%) scale(1); opacity: 1; pointer-events: auto; }
+            
+            .phone-modal { width: 400px; height: auto; border-radius: 12px; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9); opacity: 0; pointer-events: none; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+            .phone-modal.show { transform: translate(-50%, -50%) scale(1); opacity: 1; pointer-events: auto; }
         }
     </style>
 </head>
@@ -165,6 +182,10 @@
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="google-icon">
                 Masuk dengan Google
             </button>
+            <button type="button" class="btn btn-phone" onclick="showPhoneLogin()">
+                <i class="fas fa-phone" style="color: green;"></i>
+                Masuk dengan No. HP
+            </button>
             
             <div class="divider">ATAU EMAIL</div>
 
@@ -175,12 +196,28 @@
         <p style="margin-top:20px; cursor:pointer; color:var(--accent); font-weight:600;" onclick="toggleAuthMode()"><span id="switchText">Belum punya akun? Daftar</span></p>
     </div>
 
+    <div id="phoneLoginModal" class="phone-modal">
+        <div class="page-header"><i class="fas fa-arrow-left" onclick="hidePhoneLogin()" style="cursor:pointer;"></i><span>Login No. HP</span><div></div></div>
+        
+        <div id="phoneInputSection">
+            <p style="color:#666; margin-bottom:15px; font-size:0.9rem;">Masukkan nomor dengan kode negara (Contoh: +6281234...)</p>
+            <input type="tel" id="phoneNumberInput" class="modern-input" placeholder="+62...">
+            <div id="recaptcha-container" style="margin-bottom:15px;"></div>
+            <button class="btn btn-success" onclick="sendOtpCode()">Kirim Kode OTP</button>
+        </div>
+
+        <div id="otpInputSection" class="hidden">
+            <p style="color:#666; margin-bottom:15px; font-size:0.9rem;">Masukkan 6 digit kode yang dikirim ke SMS.</p>
+            <input type="text" id="otpInput" class="modern-input" placeholder="123456" style="letter-spacing: 5px; font-size: 1.2rem; text-align: center;">
+            <button class="btn btn-primary" onclick="verifyOtpCode()">Verifikasi</button>
+        </div>
+    </div>
+
     <div id="appView" class="hidden main-layout">
         <div class="mobile-header-spacer"></div> 
-        
         <div id="homeTab"><div id="feedContainer" style="padding:0 10px;"></div><div style="height:20px;"></div></div>
-        <div id="popularTab" class="hidden"><div style="padding:15px; font-weight:800; font-size:1.5rem;">Populer 🔥</div><div id="popularFeedContainer" style="padding:0 10px;"><p style="text-align:center; color:#999; margin-top:20px;">Memuat...</p></div><div style="height:20px;"></div></div>
-        <div id="searchTab" class="hidden"><div style="padding:15px; font-weight:800; font-size:1.5rem;">Pencarian</div><div style="padding: 0 15px;"><input type="text" id="searchInput" class="modern-input" placeholder="Cari teman atau postingan..." oninput="handleSearch(this.value)"><div id="searchResults"><p style="text-align:center; color:#999; margin-top:20px;">Mulai ketik...</p></div></div></div>
+        <div id="popularTab" class="hidden"><div style="padding:15px; font-weight:800; font-size:1.5rem;" class="mobile-only-header">Populer 🔥</div><div id="popularFeedContainer" style="padding:0 10px;"><p style="text-align:center; color:#999; margin-top:20px;">Memuat...</p></div><div style="height:20px;"></div></div>
+        <div id="searchTab" class="hidden"><div style="padding:15px; font-weight:800; font-size:1.5rem;" class="mobile-only-header">Pencarian</div><div style="padding: 0 15px;"><input type="text" id="searchInput" class="modern-input" placeholder="Cari teman atau postingan..." oninput="handleSearch(this.value)"><div id="searchResults"><p style="text-align:center; color:#999; margin-top:20px;">Mulai ketik...</p></div></div></div>
         <div id="profileTab" class="hidden">
             <div class="profile-header"><i class="fas fa-cog" style="float:right; font-size:1.2rem; cursor:pointer;" onclick="openSettings()"></i><div style="clear:both;"></div><img id="displayPhoto" src="" class="profile-pic-big"><h2 id="displayName" style="font-size:1.4rem; margin-top:10px;">Nama</h2><p id="displayUsername" style="color:var(--text-sec);">@user</p><div class="stats-row"><div class="stat-item"><b id="statPosts">0</b><span>Postingan</span></div><div class="stat-item"><b id="statFollowers">0</b><span>Pengikut</span></div><div class="stat-item"><b id="statFollowing">0</b><span>Mengikuti</span></div></div><p id="displayBio" style="margin-top:10px; color:#444;">...</p><button class="btn" style="background:#E4E6EB; color:black; width:auto; padding:8px 20px; margin-top:15px;" onclick="openEditProfile()"><i class="fas fa-pen"></i> Edit Profil</button></div>
             <div style="padding:0 15px;"><h3 style="margin-bottom:15px; font-size:1rem; border-bottom:1px solid #ddd; padding-bottom:10px;">Postingan Saya</h3><div id="myFeedContainer"></div></div>
@@ -228,7 +265,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile, GoogleAuthProvider, signInWithPopup, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, collection, addDoc, query, orderBy, onSnapshot, updateDoc, deleteDoc, arrayUnion, arrayRemove, where, getDocs } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
         // CONFIG (Ganti dengan Config Rivo Anda)
@@ -245,7 +282,17 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const googleProvider = new GoogleAuthProvider(); // NEW PROVIDER
+        const googleProvider = new GoogleAuthProvider();
+
+        // SETUP RECAPTCHA FOR PHONE AUTH
+        window.setupRecaptcha = () => {
+            if(!window.recaptchaVerifier) {
+                window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+                    'size': 'normal'
+                });
+                window.recaptchaVerifier.render();
+            }
+        }
 
         let currentUser = null;
         let isRegister = false;
@@ -304,9 +351,26 @@
                 currentUser = user;
                 const userRef = doc(db, "users", user.uid);
                 const snap = await getDoc(userRef);
-                if(snap.exists() && snap.data().isBanned === true) {
+                
+                // JIKA USER BARU DARI HP/GOOGLE (BELUM ADA DATA)
+                if (!snap.exists()) {
+                    let randomName = "User-" + Math.floor(Math.random()*10000);
+                    let randomUser = "user" + Date.now();
+                    let pic = user.photoURL || `https://ui-avatars.com/api/?name=${randomName}&background=random`;
+                    
+                    await setDoc(userRef, { 
+                        uid: user.uid, 
+                        name: user.displayName || randomName, 
+                        email: user.email || "",
+                        username: randomUser,
+                        photoURL: pic, 
+                        bio: "Hai!", 
+                        followers: [], following: [], violationCount: 0, isBanned: false
+                    });
+                } else if(snap.data().isBanned === true) {
                     document.getElementById('banOverlay').classList.remove('hidden'); return;
                 }
+
                 document.getElementById('authView').classList.add('hidden');
                 document.getElementById('appView').classList.remove('hidden');
                 loadUserData(); loadFeed(); loadMyPosts();
@@ -319,30 +383,39 @@
 
         // --- GOOGLE LOGIN ---
         window.handleGoogleLogin = async () => {
-            try {
-                const result = await signInWithPopup(auth, googleProvider);
-                const user = result.user;
-                
-                // Cek apakah user sudah ada di database, kalau belum buat baru
-                const userRef = doc(db, "users", user.uid);
-                const userSnap = await getDoc(userRef);
-                
-                if (!userSnap.exists()) {
-                    await setDoc(userRef, { 
-                        uid: user.uid, 
-                        name: user.displayName, 
-                        email: user.email,
-                        username: user.email.split('@')[0],
-                        photoURL: user.photoURL, 
-                        bio: "Hai, saya menggunakan Rivo!",
-                        followers: [], following: [], violationCount: 0, isBanned: false
-                    });
-                }
-                // onAuthStateChanged akan menangani sisanya
-            } catch (error) {
-                alert("Gagal Login Google: " + error.message);
-                console.error(error);
-            }
+            try { await signInWithPopup(auth, googleProvider); } 
+            catch (error) { alert("Gagal Login Google: " + error.message); }
+        };
+
+        // --- PHONE LOGIN LOGIC ---
+        window.showPhoneLogin = () => {
+            document.getElementById('phoneLoginModal').classList.add('show');
+            setupRecaptcha();
+        };
+        window.hidePhoneLogin = () => document.getElementById('phoneLoginModal').classList.remove('show');
+
+        window.sendOtpCode = () => {
+            const phoneNumber = document.getElementById('phoneNumberInput').value;
+            const appVerifier = window.recaptchaVerifier;
+            
+            signInWithPhoneNumber(auth, phoneNumber, appVerifier)
+                .then((confirmationResult) => {
+                    window.confirmationResult = confirmationResult;
+                    document.getElementById('phoneInputSection').classList.add('hidden');
+                    document.getElementById('otpInputSection').classList.remove('hidden');
+                    alert("Kode OTP dikirim!");
+                }).catch((error) => {
+                    alert("Gagal kirim OTP: " + error.message);
+                });
+        };
+
+        window.verifyOtpCode = () => {
+            const code = document.getElementById('otpInput').value;
+            window.confirmationResult.confirm(code).then((result) => {
+                hidePhoneLogin(); // Auth listener will handle redirect
+            }).catch((error) => {
+                alert("Kode Salah!");
+            });
         };
 
         window.toggleAuthMode = () => {
