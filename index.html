@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Rivo Social - Security System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* --- CONFIG VARIABLES --- */
+        :root {
+            --bg-body: #F0F2F5; --bg-card: #FFFFFF; --text-main: #050505; --text-sec: #65676B;
+            --accent: #2563EB; --like-color: #E0245E; --radius: 12px; --header-h: 60px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg-body); color: var(--text-main); }
+        .hidden { display: none !important; }
+
+        /* UTILS */
+        .btn { padding: 10px; border-radius: 8px; font-weight: 600; border: none; cursor: pointer; width: 100%; transition: 0.2s; }
+        .btn-primary { background: var(--text-main); color: white; }
+        .btn-danger { background: #fee2e2; color: #ef4444; }
+        .modern-input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 20px; background: #f0f2f5; outline: none; margin-bottom: 10px; }
+        .clickable { cursor: pointer; } .clickable:hover { opacity: 0.8; }
+
+        /* AUTH */
+        #authView { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-card); z-index: 5000; padding: 40px 25px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        #authForm { width: 100%; max-width: 400px; }
+
+        /* LAYOUT & HEADERS */
+        .main-layout { padding-bottom: 80px; max-width: 100%; margin: 0 auto; }
+        
+        /* DESKTOP ELEMENT (Hidden on Mobile) */
+        .desktop-header, .desktop-sidebar { display: none; }
+
+        /* MOBILE TOP HEADER (NEW) */
+        .mobile-top-bar {
+            position: fixed; top: 0; left: 0; width: 100%; height: 60px;
+            background: white; border-bottom: 1px solid #ddd;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 15px; z-index: 2000;
+        }
+        .mobile-logo-img { height: 35px; width: auto; object-fit: contain; } /* Logo Gambar */
+        .mobile-header-spacer { height: 60px; } /* Spacer agar konten tidak ketutup */
+
+        /* MOBILE BOTTOM NAV */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 60px; background: rgba(255,255,255,0.95); border-top: 1px solid #ddd; display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
+        .nav-item { font-size: 1.5rem; color: #bbb; cursor: pointer; }
+        .nav-item.active { color: var(--accent); }
+
+        /* BAN OVERLAY (POP UP PERMANEN) */
+        #banOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            color: white; text-align: center; padding: 30px;
+        }
+        #banOverlay i { font-size: 4rem; color: #ff4757; margin-bottom: 20px; }
+        #banOverlay h2 { margin-bottom: 10px; color: #ff6b81; }
+        #banOverlay p { color: #ccc; margin-bottom: 30px; line-height: 1.5; }
+
+        /* FEED CARD */
+        .feed-card { background: var(--bg-card); margin-bottom: 15px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); border-radius: var(--radius); overflow: hidden; position: relative; }
+        .card-header { padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; }
+        .header-left { display: flex; align-items: center; }
+        .card-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; margin-right: 12px; border: 1px solid #eee; flex-shrink: 0; }
+        .card-menu { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 50%; cursor: pointer; color: var(--text-sec); }
+        .card-caption { padding: 0 16px 10px 16px; font-size: 0.95rem; line-height: 1.4; word-wrap: break-word; color: var(--text-main); }
+        .card-media img { width: 100%; display: block; max-height: 500px; object-fit: cover; background: #f0f0f0; }
+        .card-actions { padding: 8px 16px; display: flex; gap: 20px; border-top: 1px solid #eee; }
+        .action-btn { background: none; border: none; font-size: 1.2rem; color: var(--text-sec); cursor: pointer; display: flex; gap: 6px; align-items: center; }
+        .action-btn.liked { color: var(--like-color); }
+        .action-btn span { font-size: 0.9rem; font-weight: 600; }
+
+        /* SEARCH & PROFILE */
+        .user-search-item { display: flex; align-items: center; justify-content: space-between; background: white; padding: 12px; border-radius: 12px; margin-bottom: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .user-search-info { display: flex; align-items: center; gap: 10px; cursor: pointer; flex: 1; }
+        .user-search-img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+        .follow-btn { background: var(--text-main); color: white; border: none; padding: 6px 14px; border-radius: 18px; font-size: 0.85rem; font-weight: 600; cursor: pointer; flex-shrink: 0;}
+        .follow-btn.following { background: #e4e6eb; color: black; }
+        .profile-header { background: var(--bg-card); padding: 30px 20px; margin-bottom: 15px; text-align: center; }
+        .profile-pic-big { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; border: 4px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .stats-row { display: flex; justify-content: center; gap: 25px; margin: 15px 0; }
+        .stat-item b { display: block; font-size: 1.1rem; }
+        .stat-item span { font-size: 0.8rem; color: var(--text-sec); }
+
+        /* COMMENT SHEET */
+        .sheet-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 3500; opacity: 0; pointer-events: none; transition: 0.3s; }
+        .sheet-backdrop.show { opacity: 1; pointer-events: auto; }
+        .comment-sheet { position: fixed; bottom: 0; left: 0; width: 100%; height: 75vh; background: white; z-index: 4000; border-radius: 20px 20px 0 0; transform: translateY(100%); transition: transform 0.3s; display: flex; flex-direction: column; }
+        .comment-sheet.open { transform: translateY(0); }
+        .sheet-header { padding: 15px 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
+        .sheet-body { flex: 1; overflow-y: auto; padding: 15px; }
+        .sheet-footer { padding: 10px 15px; border-top: 1px solid #eee; display: flex; gap: 10px; background: white; }
+        .sheet-comment-item { display: flex; gap: 10px; margin-bottom: 15px; align-items: flex-start; }
+        .sheet-comment-avatar { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1px solid #eee; }
+        .sheet-comment-content { background: #F0F2F5; padding: 8px 12px; border-radius: 12px; font-size: 0.9rem; position: relative; max-width: 85%; word-wrap: break-word; }
+        .sheet-comment-name { font-weight: 600; font-size: 0.85rem; margin-bottom: 2px; }
+        .comment-delete-btn { position: absolute; top: 5px; right: -25px; color: #999; font-size: 0.8rem; cursor: pointer; padding: 5px; }
+
+        /* MODALS */
+        .slide-page { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-body); z-index: 3000; transform: translateY(100%); transition: transform 0.3s; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; }
+        .slide-page.open { transform: translateY(0); }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-weight: bold; font-size: 1.1rem; }
+
+        /* DESKTOP (Min 768px) */
+        @media (min-width: 768px) {
+            body { background-color: #F0F2F5; }
+            .bottom-nav { display: none !important; }
+            .mobile-top-bar { display: none !important; } /* Sembunyikan Header Mobile di PC */
+            .mobile-header-spacer { display: none !important; }
+            
+            .main-layout { padding-bottom: 0; padding-top: var(--header-h); display: flex; justify-content: center; }
+            .desktop-header { display: flex; justify-content: space-between; align-items: center; position: fixed; top: 0; left: 0; width: 100%; height: var(--header-h); background: var(--bg-card); box-shadow: 0 1px 2px rgba(0,0,0,0.1); z-index: 2000; padding: 0 20px; }
+            .brand-logo { font-size: 1.5rem; font-weight: 800; color: var(--accent); letter-spacing: -1px; }
+            .header-right { display: flex; align-items: center; gap: 15px; }
+            .header-btn { width: 35px; height: 35px; border-radius: 50%; background: #E4E6EB; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+            .header-profile-img { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; cursor: pointer; border: 1px solid #ddd; }
+            .desktop-sidebar { display: block; position: fixed; top: var(--header-h); left: 0; width: 280px; height: calc(100vh - var(--header-h)); padding: 20px; overflow-y: auto; }
+            .sidebar-item { display: flex; align-items: center; gap: 15px; padding: 12px; border-radius: 10px; cursor: pointer; font-weight: 600; color: var(--text-sec); }
+            .sidebar-item:hover { background: #E4E6EB; }
+            .sidebar-item.active { background: #E7F3FF; color: var(--accent); }
+            #homeTab, #profileTab, #searchTab, #popularTab { width: 100%; max-width: 600px; margin-top: 20px; }
+            .slide-page, .sheet-backdrop { background: rgba(0,0,0,0.5); align-items: center; justify-content: center; backdrop-filter: blur(2px); }
+            .slide-page > * { display: none; }
+            .desktop-modal-wrapper { display: block !important; background: white; width: 100%; max-width: 500px; padding: 20px; border-radius: 12px; max-height: 90vh; overflow-y: auto; }
+            .comment-sheet { bottom: auto; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9); width: 500px; height: 600px; border-radius: 12px; opacity: 0; pointer-events: none; }
+            .comment-sheet.open { transform: translate(-50%, -50%) scale(1); opacity: 1; pointer-events: auto; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="banOverlay" class="hidden">
+        <i class="fas fa-ban"></i>
+        <h2>AKUN DIBEKUKAN</h2>
+        <p>Akun Anda telah dinonaktifkan secara permanen karena melanggar pedoman komunitas (Komentar Kasar) lebih dari 2 kali.</p>
+        <button class="btn btn-danger" onclick="handleLogout()" style="width: auto; padding: 10px 30px;">Keluar</button>
+    </div>
+
+    <div class="mobile-top-bar">
+        <img src="https://via.placeholder.com/120x40?text=Rivo+Logo" alt="Logo" class="mobile-logo-img">
+        <div style="font-weight: bold; color: var(--accent);">App</div>
+    </div>
+
+    <header class="desktop-header">
+        <div class="brand-logo">Rivo.</div><div></div>
+        <div class="header-right"><div class="header-btn" onclick="openUpload()"><i class="fas fa-plus"></i></div><img id="headerProfileImg" src="" class="header-profile-img" onclick="switchTab('profile', document.getElementById('navProfileDesktop'))"></div>
+    </header>
+    <nav class="desktop-sidebar">
+        <div id="navHomeDesktop" class="sidebar-item active" onclick="switchTab('home', this)"><i class="fas fa-home"></i> <span>Beranda</span></div>
+        <div id="navPopularDesktop" class="sidebar-item" onclick="switchTab('popular', this)"><i class="fas fa-fire"></i> <span>Populer</span></div>
+        <div id="navSearchDesktop" class="sidebar-item" onclick="switchTab('search', this)"><i class="fas fa-search"></i> <span>Cari</span></div>
+        <div id="navProfileDesktop" class="sidebar-item" onclick="switchTab('profile', this)"><i class="fas fa-user"></i> <span>Profil</span></div>
+        <div class="sidebar-item" onclick="openSettings()"><i class="fas fa-cog"></i> <span>Pengaturan</span></div>
+        <hr style="border:0; border-top:1px solid #ddd; margin:10px 0;">
+        <div class="sidebar-item" onclick="handleLogout()" style="color: #ef4444;"><i class="fas fa-sign-out-alt"></i> <span>Keluar</span></div>
+    </nav>
+
+    <div id="authView">
+        <h1 style="margin-bottom:10px; font-size:2.5rem; color:var(--text-main);">Rivo.</h1>
+        <p style="color:#666; margin-bottom:30px;">Social Connect</p>
+        <form id="authForm">
+            <div id="registerFields" class="hidden"><input type="text" id="regName" class="modern-input" placeholder="Nama Lengkap"><input type="text" id="regUsername" class="modern-input" placeholder="Username"></div>
+            <input type="email" id="email" class="modern-input" placeholder="Email" required><input type="password" id="password" class="modern-input" placeholder="Password" required>
+            <button type="submit" class="btn btn-primary" id="authBtn">Masuk</button>
+        </form>
+        <p style="margin-top:20px; cursor:pointer; color:var(--accent); font-weight:600;" onclick="toggleAuthMode()"><span id="switchText">Belum punya akun? Daftar</span></p>
+    </div>
+
+    <div id="appView" class="hidden main-layout">
+        <div class="mobile-header-spacer"></div> <div id="homeTab"><div id="feedContainer" style="padding:0 10px;"></div><div style="height:20px;"></div></div>
+        <div id="popularTab" class="hidden"><div style="padding:15px; font-weight:800; font-size:1.5rem;">Populer 🔥</div><div id="popularFeedContainer" style="padding:0 10px;"><p style="text-align:center; color:#999; margin-top:20px;">Memuat...</p></div><div style="height:20px;"></div></div>
+        <div id="searchTab" class="hidden"><div style="padding:15px; font-weight:800; font-size:1.5rem;">Pencarian</div><div style="padding: 0 15px;"><input type="text" id="searchInput" class="modern-input" placeholder="Cari teman atau postingan..." oninput="handleSearch(this.value)"><div id="searchResults"><p style="text-align:center; color:#999; margin-top:20px;">Mulai ketik...</p></div></div></div>
+        <div id="profileTab" class="hidden">
+            <div class="profile-header"><i class="fas fa-cog" style="float:right; font-size:1.2rem; cursor:pointer;" onclick="openSettings()"></i><div style="clear:both;"></div><img id="displayPhoto" src="" class="profile-pic-big"><h2 id="displayName" style="font-size:1.4rem; margin-top:10px;">Nama</h2><p id="displayUsername" style="color:var(--text-sec);">@user</p><div class="stats-row"><div class="stat-item"><b id="statPosts">0</b><span>Postingan</span></div><div class="stat-item"><b id="statFollowers">0</b><span>Pengikut</span></div><div class="stat-item"><b id="statFollowing">0</b><span>Mengikuti</span></div></div><p id="displayBio" style="margin-top:10px; color:#444;">...</p><button class="btn" style="background:#E4E6EB; color:black; width:auto; padding:8px 20px; margin-top:15px;" onclick="openEditProfile()"><i class="fas fa-pen"></i> Edit Profil</button></div>
+            <div style="padding:0 15px;"><h3 style="margin-bottom:15px; font-size:1rem; border-bottom:1px solid #ddd; padding-bottom:10px;">Postingan Saya</h3><div id="myFeedContainer"></div></div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="switchTab('home', this)"><i class="fas fa-home"></i></div>
+        <div class="nav-item" onclick="switchTab('popular', this)"><i class="fas fa-fire"></i></div>
+        <div class="nav-item" onclick="switchTab('search', this)"><i class="fas fa-search"></i></div>
+        <div class="nav-item" onclick="openUpload()"><i class="fas fa-plus-circle" style="font-size:2.2rem; color:var(--text-main);"></i></div>
+        <div class="nav-item" onclick="switchTab('profile', this)"><i class="fas fa-user"></i></div>
+    </div>
+
+    <div id="otherProfileView" class="slide-page">
+        <div class="desktop-modal-wrapper">
+            <div class="page-header"><i class="fas fa-arrow-left" style="cursor:pointer;" onclick="closeOtherProfile()"></i><span id="otherProfileTitle">Profil</span><div></div></div>
+            <div class="profile-header" style="background:transparent; box-shadow:none; padding-top:0;"><img id="otherDisplayPhoto" src="" class="profile-pic-big"><h2 id="otherDisplayName" style="font-size:1.4rem; margin-top:10px;">User</h2><p id="otherDisplayUsername" style="color:var(--text-sec);">@user</p><div class="stats-row"><div class="stat-item"><b id="otherStatPosts">0</b><span>Postingan</span></div><div class="stat-item"><b id="otherStatFollowers">0</b><span>Pengikut</span></div><div class="stat-item"><b id="otherStatFollowing">0</b><span>Mengikuti</span></div></div><p id="otherDisplayBio" style="margin-top:10px; color:#444;">...</p><button id="otherFollowBtn" class="btn" style="width:auto; padding:8px 30px; margin-top:15px;" onclick="handleOtherFollow()">Follow</button></div>
+            <div style="padding:0 15px;"><h3 style="margin-bottom:15px; font-size:1rem; border-bottom:1px solid #ddd; padding-bottom:10px;">Postingan</h3><div id="otherFeedContainer"></div></div>
+        </div>
+    </div>
+
+    <div id="sheetBackdrop" class="sheet-backdrop" onclick="closeCommentSheet()"></div>
+    <div id="globalCommentSheet" class="comment-sheet">
+        <div class="sheet-header"><span>Komentar</span><i class="fas fa-times" onclick="closeCommentSheet()" style="cursor: pointer;"></i></div>
+        <div id="sheetCommentList" class="sheet-body"></div>
+        <div class="sheet-footer"><input type="text" id="sheetCommentInput" class="modern-input" placeholder="Tulis komentar..." style="margin-bottom: 0;"><button onclick="sendCommentFromSheet()" style="background:none; border:none; color:var(--accent); font-size: 1.5rem;"><i class="fas fa-paper-plane"></i></button></div>
+    </div>
+
+    <div id="editProfileView" class="slide-page"><div class="desktop-modal-wrapper"><div class="page-header"><span onclick="closeEditProfile()" style="cursor:pointer; color:var(--text-sec)">Batal</span><span>Edit Profil</span><span onclick="saveProfile()" style="cursor:pointer; color:var(--accent)">Simpan</span></div><div style="text-align:center; margin-bottom:20px;" onclick="document.getElementById('profileFileInput').click()"><img id="editPreviewImg" src="" style="width:100px; height:100px; border-radius:50%; object-fit:cover; cursor:pointer; border:2px solid #ddd;"><p style="color:var(--accent); font-size:0.9rem; margin-top:5px;">Ganti Foto</p><input type="file" id="profileFileInput" accept="image/*" style="display:none" onchange="previewProfileImage()"></div><label style="font-size:0.8rem; color:#666;">Nama</label><input type="text" id="editName" class="modern-input"><label style="font-size:0.8rem; color:#666;">Username</label><input type="text" id="editUsername" class="modern-input"><label style="font-size:0.8rem; color:#666;">Bio</label><textarea id="editBio" class="modern-input" style="height:80px; resize:none;"></textarea></div></div>
+    
+    <div id="uploadView" class="slide-page">
+        <div class="desktop-modal-wrapper">
+            <div class="page-header"><i class="fas fa-times" onclick="closeUpload()" style="cursor:pointer;"></i><span>Buat Postingan</span><span onclick="handlePostUpload()" style="cursor:pointer; color:var(--accent);">Kirim</span></div>
+            <textarea id="postCaption" class="modern-input" placeholder="Apa yang Anda pikirkan?" style="border:none; background:transparent; font-size:1.1rem; height:80px; resize:none;"></textarea>
+            <div style="border:1px solid #ddd; border-radius:8px; padding:20px; text-align:center; cursor:pointer; background:#fafafa; margin-bottom:10px;" onclick="document.getElementById('postFileInput').click()">
+                <i class="fas fa-image" style="font-size:1.5rem; color:#45bd62;"></i><p style="color:#666; font-size:0.9rem;">Pilih Foto (Video Non-Aktif)</p>
+            </div>
+            <input type="file" id="postFileInput" accept="image/*" style="display:none"><div id="postStatus" style="text-align:center; margin-top:10px; color:var(--accent);"></div>
+        </div>
+    </div>
+
+    <div id="editPostView" class="slide-page"><div class="desktop-modal-wrapper"><div class="page-header"><span onclick="closeEditPost()" style="cursor:pointer; color:var(--text-sec)">Batal</span><span>Edit Postingan</span><span onclick="savePostUpdate()" style="cursor:pointer; color:var(--accent)">Update</span></div><input type="hidden" id="editPostId"><textarea id="editPostCaption" class="modern-input" style="height:100px; resize:none;"></textarea><div style="margin-top:10px;"><div onclick="document.getElementById('editPostFileInput').click()" style="cursor:pointer;"><img id="editPostPreview" src="" style="width:100%; max-height:200px; object-fit:contain; border-radius:8px; border:1px solid #ddd;"></div><input type="file" id="editPostFileInput" accept="image/*" style="display:none" onchange="previewEditPostImage()"></div><button class="btn btn-danger" onclick="deletePost()"><i class="fas fa-trash"></i> Hapus Postingan</button></div></div>
+    <div id="settingsView" class="slide-page"><div class="desktop-modal-wrapper"><div class="page-header"><i class="fas fa-arrow-left" onclick="closeSettings()" style="cursor:pointer;"></i><span>Pengaturan</span><div></div></div><button class="btn btn-danger" onclick="handleLogout()">Keluar Akun</button></div></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, addDoc, query, orderBy, onSnapshot, updateDoc, deleteDoc, arrayUnion, arrayRemove, where, getDocs } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+        // CONFIG (Ganti dengan Config Rivo Anda)
+        const firebaseConfig = {
+            apiKey: "AIzaSyB2xZ82pzvwx4ezVKX03ncKPrNrKJVuuE8",
+            authDomain: "rivoindonesia.firebaseapp.com",
+            projectId: "rivoindonesia",
+            storageBucket: "rivoindonesia.firebasestorage.app",
+            messagingSenderId: "257736879372",
+            appId: "1:257736879372:web:e5fbcda83069694e586d29",
+            measurementId: "G-E2M7YQ0HWK"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUser = null;
+        let isRegister = false;
+        let currentCommentPostId = null; 
+        let allPostsData = {}; 
+        let currentUserData = {}; 
+        let visitedUserUid = null;
+
+        // --- SISTEM BANNED & BAD WORDS ---
+        const BAD_WORDS = ['kasar', 'bodoh', 'anjing', 'tolol', 'babi', 'mati']; // Tambahkan kata kasar di sini
+
+        function checkBadWords(text) {
+            const lowerText = text.toLowerCase();
+            return BAD_WORDS.some(word => lowerText.includes(word));
+        }
+
+        async function handleViolation(userUid) {
+            const userRef = doc(db, "users", userUid);
+            const userSnap = await getDoc(userRef);
+            
+            if(userSnap.exists()) {
+                const data = userSnap.data();
+                const currentViolations = data.violationCount || 0;
+                const newCount = currentViolations + 1;
+
+                if (newCount >= 2) {
+                    // BANNED PERMANEN
+                    await updateDoc(userRef, { violationCount: newCount, isBanned: true });
+                    alert("Akun Anda diblokir permanen karena melanggar aturan komunitas!");
+                    document.getElementById('banOverlay').classList.remove('hidden'); // Tampilkan layar merah
+                } else {
+                    // PERINGATAN
+                    await updateDoc(userRef, { violationCount: newCount });
+                    alert(`PERINGATAN! Komentar kasar terdeteksi. Pelanggaran: ${newCount}/2. Jika mencapai 2, akun akan dibanned permanen.`);
+                }
+            }
+        }
+
+        // --- COMPRESSOR ---
+        function compressImage(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const MAX_WIDTH = 400; const scaleSize = MAX_WIDTH / img.width;
+                        canvas.width = MAX_WIDTH; canvas.height = img.height * scaleSize;
+                        const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        resolve(canvas.toDataURL('image/jpeg', 0.6));
+                    }
+                }
+                reader.onerror = (err) => reject(err);
+            });
+        }
+
+        // --- AUTH ---
+        onAuthStateChanged(auth, async (user) => {
+            if(user) {
+                currentUser = user;
+                
+                // CEK STATUS BANNED SAAT LOGIN
+                const userRef = doc(db, "users", user.uid);
+                const snap = await getDoc(userRef);
+                if(snap.exists() && snap.data().isBanned === true) {
+                    document.getElementById('banOverlay').classList.remove('hidden');
+                    return; // Stop loading app
+                }
+
+                document.getElementById('authView').classList.add('hidden');
+                document.getElementById('appView').classList.remove('hidden');
+                loadUserData(); loadFeed(); loadMyPosts();
+            } else {
+                document.getElementById('appView').classList.add('hidden');
+                document.getElementById('authView').classList.remove('hidden');
+                document.getElementById('banOverlay').classList.add('hidden'); // Sembunyikan jika logout
+            }
+        });
+
+        window.toggleAuthMode = () => {
+            isRegister = !isRegister;
+            document.getElementById('registerFields').classList.toggle('hidden');
+            document.getElementById('authBtn').innerText = isRegister ? "Daftar Akun" : "Masuk";
+            document.getElementById('switchText').innerText = isRegister ? "Sudah punya akun? Masuk" : "Belum punya akun? Daftar";
+        };
+
+        document.getElementById('authForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('password').value;
+            try {
+                if(isRegister) {
+                    const name = document.getElementById('regName').value;
+                    const username = document.getElementById('regUsername').value;
+                    const res = await createUserWithEmailAndPassword(auth, email, pass);
+                    const pic = `https://ui-avatars.com/api/?name=${name}&background=random`;
+                    // Setup User Data Baru (termasuk counter violation)
+                    await setDoc(doc(db, "users", res.user.uid), { 
+                        uid: res.user.uid, name, username, email, bio: "Hai!", photoURL: pic, 
+                        followers: [], following: [], violationCount: 0, isBanned: false
+                    }, {merge:true});
+                    await updateProfile(res.user, { displayName: name, photoURL: pic });
+                } else {
+                    await signInWithEmailAndPassword(auth, email, pass);
+                }
+            } catch(err) { alert(err.message); }
+        });
+
+        window.handleLogout = () => signOut(auth);
+
+        async function loadUserData() {
+            onSnapshot(doc(db, "users", currentUser.uid), (docSnap) => {
+                if(docSnap.exists()) {
+                    currentUserData = docSnap.data();
+                    
+                    // Real-time Ban Check
+                    if (currentUserData.isBanned) {
+                        document.getElementById('banOverlay').classList.remove('hidden');
+                    }
+
+                    document.getElementById('displayName').innerText = currentUserData.name;
+                    document.getElementById('displayUsername').innerText = "@" + currentUserData.username;
+                    document.getElementById('displayBio').innerText = currentUserData.bio;
+                    document.getElementById('displayPhoto').src = currentUserData.photoURL;
+                    document.getElementById('editName').value = currentUserData.name;
+                    document.getElementById('editUsername').value = currentUserData.username;
+                    document.getElementById('editBio').value = currentUserData.bio;
+                    document.getElementById('editPreviewImg').src = currentUserData.photoURL;
+                    document.getElementById('headerProfileImg').src = currentUserData.photoURL;
+                    const followers = currentUserData.followers ? currentUserData.followers.length : 0;
+                    const following = currentUserData.following ? currentUserData.following.length : 0;
+                    document.getElementById('statFollowers').innerText = followers;
+                    document.getElementById('statFollowing').innerText = following;
+                }
+            });
+            const q = query(collection(db, "posts"), where("userId", "==", currentUser.uid));
+            const snap = await getDocs(q);
+            document.getElementById('statPosts').innerText = snap.size;
+        }
+
+        window.saveProfile = async () => {
+            const name = document.getElementById('editName').value;
+            const username = document.getElementById('editUsername').value;
+            const bio = document.getElementById('editBio').value;
+            const file = document.getElementById('profileFileInput').files[0];
+            const btn = document.querySelector('#editProfileView .page-header span:last-child');
+            btn.innerText = "Processing...";
+            try {
+                let photoURL = currentUser.photoURL;
+                if(file) photoURL = await compressImage(file);
+                await setDoc(doc(db, "users", currentUser.uid), { name, username, bio, photoURL }, { merge: true });
+                await updateProfile(currentUser, { displayName: name, photoURL });
+                closeEditProfile(); alert("Tersimpan!");
+            } catch(err) { alert(err.message); } finally { btn.innerText = "Simpan"; }
+        };
+
+        // --- VISIT PROFILE ---
+        window.visitUser = async (targetUid) => {
+            if(targetUid === currentUser.uid) { switchTab('profile'); return; }
+            visitedUserUid = targetUid;
+            document.getElementById('otherProfileView').classList.add('open');
+            onSnapshot(doc(db, "users", targetUid), (docSnap) => {
+                if(docSnap.exists()) {
+                    const data = docSnap.data();
+                    document.getElementById('otherDisplayPhoto').src = data.photoURL;
+                    document.getElementById('otherDisplayName').innerText = data.name;
+                    document.getElementById('otherDisplayUsername').innerText = "@" + data.username;
+                    document.getElementById('otherDisplayBio').innerText = data.bio || "...";
+                    document.getElementById('otherStatFollowers').innerText = data.followers ? data.followers.length : 0;
+                    document.getElementById('otherStatFollowing').innerText = data.following ? data.following.length : 0;
+                    updateFollowBtnState(targetUid);
+                }
+            });
+            const q = query(collection(db, "posts"), where("userId", "==", targetUid), orderBy("createdAt", "desc"));
+            renderPostList(q, "otherFeedContainer");
+            const snap = await getDocs(q);
+            document.getElementById('otherStatPosts').innerText = snap.size;
+        };
+        window.closeOtherProfile = () => { document.getElementById('otherProfileView').classList.remove('open'); visitedUserUid = null; };
+        function updateFollowBtnState(targetUid) {
+            const btn = document.getElementById('otherFollowBtn');
+            const amIFollowing = currentUserData.following && currentUserData.following.includes(targetUid);
+            if(amIFollowing) { btn.innerText = "Mengikuti"; btn.style.background = "#e4e6eb"; btn.style.color = "black"; } 
+            else { btn.innerText = "Follow"; btn.style.background = "var(--text-main)"; btn.style.color = "white"; }
+        }
+        window.handleOtherFollow = () => { if(visitedUserUid) window.handleFollow(visitedUserUid); }
+
+        // --- SEARCH ---
+        window.handleSearch = async (keyword) => {
+            const resDiv = document.getElementById('searchResults');
+            resDiv.innerHTML = "";
+            if(keyword.length < 2) return;
+            const qUsers = query(collection(db, "users"));
+            const snapUsers = await getDocs(qUsers);
+            let usersFound = false;
+            resDiv.innerHTML += `<div class="search-section-title">Pengguna</div>`;
+            snapUsers.forEach(docSnap => {
+                const user = docSnap.data();
+                if(user.uid === currentUser.uid) return;
+                if(user.username.toLowerCase().includes(keyword.toLowerCase()) || user.name.toLowerCase().includes(keyword.toLowerCase())) {
+                    usersFound = true;
+                    const amIFollowing = currentUserData.following && currentUserData.following.includes(user.uid);
+                    let btnText = amIFollowing ? "Mengikuti" : "Follow";
+                    let btnClass = amIFollowing ? "following" : "";
+                    resDiv.innerHTML += `
+                        <div class="user-search-item">
+                            <div class="user-search-info" onclick="visitUser('${user.uid}')">
+                                <img src="${user.photoURL}" class="user-search-img">
+                                <div><div style="font-weight:600; font-size:0.9rem;">${user.name}</div><div style="font-size:0.8rem; color:#666;">@${user.username}</div></div>
+                            </div>
+                            <button class="follow-btn ${btnClass}" onclick="handleFollow('${user.uid}')">${btnText}</button>
+                        </div>
+                    `;
+                }
+            });
+            if(!usersFound) resDiv.innerHTML += "<p style='font-size:0.85rem; color:#999; margin-bottom:15px;'>Tidak ada pengguna.</p>";
+
+            resDiv.innerHTML += `<div class="search-section-title">Postingan</div>`;
+            const qPosts = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+            const snapPosts = await getDocs(qPosts);
+            let postsFound = false;
+            snapPosts.forEach(docSnap => {
+                const post = docSnap.data();
+                if(post.title && post.title.toLowerCase().includes(keyword.toLowerCase())) {
+                    postsFound = true;
+                    allPostsData[docSnap.id] = post; 
+                    resDiv.appendChild(createPostCardElement(post, docSnap.id));
+                }
+            });
+            if(!postsFound) resDiv.innerHTML += "<p style='font-size:0.85rem; color:#999;'>Tidak ada postingan.</p>";
+        }
+
+        async function loadPopularFeed() {
+            const container = document.getElementById('popularFeedContainer');
+            container.innerHTML = "<p style='text-align:center;color:#999;margin-top:20px;'>Memuat...</p>";
+            const q = query(collection(db, "posts"));
+            const snap = await getDocs(q);
+            let posts = [];
+            snap.forEach(d => { posts.push({ id: d.id, ...d.data() }); });
+            posts.sort((a, b) => { return (b.likes ? b.likes.length : 0) - (a.likes ? a.likes.length : 0); });
+            container.innerHTML = "";
+            if(posts.length === 0) { container.innerHTML = "<p style='text-align:center;color:#999;'>Belum ada postingan.</p>"; return; }
+            posts.forEach(post => {
+                allPostsData[post.id] = post; 
+                container.appendChild(createPostCardElement(post, post.id));
+            });
+        }
+
+        window.handleFollow = async (targetUid) => {
+            const myRef = doc(db, "users", currentUser.uid);
+            const targetRef = doc(db, "users", targetUid);
+            const amIFollowing = currentUserData.following && currentUserData.following.includes(targetUid);
+            try {
+                if(amIFollowing) {
+                    await updateDoc(myRef, { following: arrayRemove(targetUid) });
+                    await updateDoc(targetRef, { followers: arrayRemove(currentUser.uid) });
+                } else {
+                    await updateDoc(myRef, { following: arrayUnion(targetUid) });
+                    await updateDoc(targetRef, { followers: arrayUnion(currentUser.uid) });
+                }
+                const inputVal = document.getElementById('searchInput').value;
+                if(inputVal && !document.getElementById('searchTab').classList.contains('hidden')) handleSearch(inputVal);
+                if(visitedUserUid === targetUid) updateFollowBtnState(targetUid);
+            } catch(e) { alert("Gagal follow: " + e.message); }
+        };
+
+        // --- UPLOAD (IMAGE ONLY) ---
+        window.handlePostUpload = async () => {
+            const file = document.getElementById('postFileInput').files[0];
+            const caption = document.getElementById('postCaption').value;
+            if(!file) return alert("Pilih foto!");
+            if(file.type.startsWith('video')) return alert("Maaf, upload video sedang dinonaktifkan (Kuota Habis). Silakan upload foto.");
+
+            document.getElementById('postStatus').innerText = "Mengirim...";
+            try {
+                const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+                const userData = userDoc.data();
+                const base64 = await compressImage(file);
+                await addDoc(collection(db, "posts"), {
+                    userId: currentUser.uid, userName: userData.name, userPhoto: userData.photoURL,
+                    title: caption, mediaUrl: base64, likes: [], comments: [], createdAt: Date.now()
+                });
+                closeUpload(); document.getElementById('postStatus').innerText = "";
+            } catch(err) { alert(err.message); document.getElementById('postStatus').innerText = ""; }
+        };
+
+        function createPostCardElement(post, pid) {
+            const isLiked = post.likes && post.likes.includes(currentUser.uid);
+            const likeCount = post.likes ? post.likes.length : 0;
+            const commentCount = post.comments ? post.comments.length : 0;
+            const isMine = post.userId === currentUser.uid;
+            const editBtn = isMine ? `<div class="card-menu" onclick="openEditPost('${pid}', '${post.title.replace(/'/g, "\\'")}', '${post.mediaUrl}')"><i class="fas fa-ellipsis-h"></i></div>` : '';
+            
+            const div = document.createElement('div');
+            div.className = "feed-card";
+            div.innerHTML = `
+                <div class="card-header">
+                    <div class="header-left clickable" onclick="visitUser('${post.userId}')">
+                        <img src="${post.userPhoto}" class="card-avatar">
+                        <div><div style="font-weight:700; font-size:0.95rem;">${post.userName}</div>
+                        <div style="font-size:0.75rem; color:#65676B;">${new Date(post.createdAt).toLocaleDateString()}</div></div>
+                    </div>
+                    ${editBtn}
+                </div>
+                <div class="card-caption">${post.title}</div>
+                <div class="card-media"><img src="${post.mediaUrl}"></div>
+                <div class="card-actions">
+                    <button class="action-btn ${isLiked?'liked':''}" onclick="toggleLike('${pid}')"><i class="${isLiked?'fas':'far'} fa-heart"></i> <span>${likeCount>0?likeCount:'Suka'}</span></button>
+                    <button class="action-btn" onclick="openCommentSheet('${pid}')"><i class="far fa-comment"></i> <span>${commentCount>0 ? commentCount : 'Komen'}</span></button>
+                </div>
+            `;
+            return div;
+        }
+
+        function renderPostList(queryData, containerId) {
+            onSnapshot(queryData, (snapshot) => {
+                const container = document.getElementById(containerId);
+                container.innerHTML = "";
+                if(snapshot.empty && containerId === 'myFeedContainer') { container.innerHTML = "<p style='text-align:center; color:#999;'>Kosong.</p>"; return; }
+                snapshot.forEach(docSnap => {
+                    const post = docSnap.data();
+                    allPostsData[docSnap.id] = post; 
+                    container.appendChild(createPostCardElement(post, docSnap.id));
+                });
+                if(currentCommentPostId && allPostsData[currentCommentPostId]) renderCommentsInSheet(allPostsData[currentCommentPostId]);
+            });
+        }
+        function loadFeed() { renderPostList(query(collection(db, "posts"), orderBy("createdAt", "desc")), "feedContainer"); }
+        function loadMyPosts() { renderPostList(query(collection(db, "posts"), where("userId", "==", currentUser.uid)), "myFeedContainer"); }
+
+        // --- COMMENTS (WITH BAN LOGIC) ---
+        window.openCommentSheet = (pid) => {
+            currentCommentPostId = pid;
+            document.getElementById('sheetBackdrop').classList.add('show');
+            document.getElementById('globalCommentSheet').classList.add('open');
+            if(allPostsData[pid]) renderCommentsInSheet(allPostsData[pid]);
+        }
+        window.closeCommentSheet = () => {
+            currentCommentPostId = null;
+            document.getElementById('sheetBackdrop').classList.remove('show');
+            document.getElementById('globalCommentSheet').classList.remove('open');
+        }
+        function renderCommentsInSheet(postData) {
+            const list = document.getElementById('sheetCommentList');
+            list.innerHTML = "";
+            const comments = postData.comments || [];
+            if(comments.length === 0) { list.innerHTML = "<p style='text-align:center;color:#999;margin-top:20px;'>Belum ada komentar.</p>"; return; }
+            comments.forEach(c => {
+                let deleteBtn = "";
+                const isMyComment = c.uid === currentUser.uid;
+                const isMyPost = postData.userId === currentUser.uid;
+                if (isMyComment || isMyPost) deleteBtn = `<i class="fas fa-trash comment-delete-btn" onclick="deleteComment('${c.timestamp}')"></i>`;
+                
+                list.innerHTML += `
+                    <div class="sheet-comment-item">
+                        <img src="${c.userPhoto}" class="sheet-comment-avatar clickable" onclick="visitUser('${c.uid}')">
+                        <div class="sheet-comment-content">
+                            <div class="sheet-comment-name clickable" onclick="visitUser('${c.uid}')">${c.userName}</div>
+                            <div>${c.text}</div>
+                            ${deleteBtn}
+                        </div>
+                    </div>
+                `;
+            });
+            list.scrollTop = list.scrollHeight;
+        }
+
+        window.sendCommentFromSheet = async () => {
+            const input = document.getElementById('sheetCommentInput');
+            const text = input.value;
+            if(!text || !currentCommentPostId) return;
+
+            // CEK KATA KASAR
+            if (checkBadWords(text)) {
+                await handleViolation(currentUser.uid);
+                return; // Stop komen
+            }
+
+            const u = await getDoc(doc(db, "users", currentUser.uid));
+            const newComment = { uid: currentUser.uid, userName: u.data().name, userPhoto: u.data().photoURL, text: text, timestamp: Date.now() };
+            await updateDoc(doc(db, "posts", currentCommentPostId), { comments: arrayUnion(newComment) });
+            input.value = "";
+        }
+        window.deleteComment = async (tsStr) => {
+            if(!confirm("Hapus komentar?")) return;
+            const ts = parseInt(tsStr);
+            const post = allPostsData[currentCommentPostId];
+            const commentToDelete = post.comments.find(c => c.timestamp === ts);
+            if(commentToDelete) await updateDoc(doc(db, "posts", currentCommentPostId), { comments: arrayRemove(commentToDelete) });
+        };
+
+        // UI HELPERS
+        window.toggleLike = async (pid) => { const ref=doc(db,"posts",pid); const snap=await getDoc(ref); const likes=snap.data().likes||[]; if(likes.includes(currentUser.uid)) await updateDoc(ref,{likes:arrayRemove(currentUser.uid)}); else await updateDoc(ref,{likes:arrayUnion(currentUser.uid)}); }
+        window.openEditPost = (id,title,img) => { document.getElementById('editPostView').classList.add('open'); document.getElementById('editPostId').value=id; document.getElementById('editPostCaption').value=title; document.getElementById('editPostPreview').src=img; }
+        window.closeEditPost = () => document.getElementById('editPostView').classList.remove('open');
+        window.savePostUpdate = async () => { const id=document.getElementById('editPostId').value; const data={title:document.getElementById('editPostCaption').value}; const f=document.getElementById('editPostFileInput').files[0]; if(f)data.mediaUrl=await compressImage(f); await updateDoc(doc(db,"posts",id),data); closeEditPost(); alert("Updated!"); }
+        window.deletePost = async () => { if(confirm("Hapus?")) await deleteDoc(doc(db,"posts",document.getElementById('editPostId').value)); closeEditPost(); }
+        window.previewProfileImage = () => { if(document.getElementById('profileFileInput').files[0]) document.getElementById('editPreviewImg').src=URL.createObjectURL(document.getElementById('profileFileInput').files[0]); }
+        window.previewEditPostImage = () => { if(document.getElementById('editPostFileInput').files[0]) document.getElementById('editPostPreview').src=URL.createObjectURL(document.getElementById('editPostFileInput').files[0]); }
+        window.openUpload=()=>document.getElementById('uploadView').classList.add('open'); window.closeUpload=()=>document.getElementById('uploadView').classList.remove('open');
+        window.openEditProfile=()=>document.getElementById('editProfileView').classList.add('open'); window.closeEditProfile=()=>document.getElementById('editProfileView').classList.remove('open');
+        window.openSettings=()=>document.getElementById('settingsView').classList.add('open'); window.closeSettings=()=>document.getElementById('settingsView').classList.remove('open');
+
+        window.switchTab = (tab, el) => {
+            ['homeTab','profileTab','searchTab','popularTab'].forEach(t => document.getElementById(t).classList.add('hidden'));
+            document.getElementById(tab+'Tab').classList.remove('hidden');
+            if(tab === 'popular') loadPopularFeed();
+            document.querySelectorAll('.desktop-sidebar .sidebar-item').forEach(i => i.classList.remove('active'));
+            if(tab==='home') document.getElementById('navHomeDesktop').classList.add('active');
+            if(tab==='search') document.getElementById('navSearchDesktop').classList.add('active');
+            if(tab==='profile') document.getElementById('navProfileDesktop').classList.add('active');
+            if(tab==='popular') document.getElementById('navPopularDesktop').classList.add('active');
+            document.querySelectorAll('.bottom-nav .nav-item').forEach(i => i.classList.remove('active'));
+            if(el && el.classList.contains('nav-item')) el.classList.add('active');
+        };
+    </script>
+</body>
+</html>
